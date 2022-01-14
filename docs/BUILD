@@ -1,12 +1,16 @@
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
 
 # Workaround https://github.com/bazelbuild/stardoc/issues/25
 write_file(
     name = "gen_header",
     out = "header.vm",
-    content = ["${moduleDocstring}"],
+    content = [
+        "<!-- Generated with Stardoc, Do Not Edit! -->",
+        "",
+        "${moduleDocstring}",
+    ],
 )
 
 stardoc(
@@ -20,6 +24,7 @@ stardoc(
 # If these fail, run `bazel run //docs:update`
 diff_test(
     name = "check_container",
+    failure_message = "Please run bazel run //docs:update",
     file1 = "container.md",
     file2 = ":container_doc",
 )

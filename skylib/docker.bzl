@@ -11,16 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Generated file with dependencies for language rule."""
+"""Common functions for docker library"""
 
-# !!!! THIS IS A GENERATED FILE TO NOT EDIT IT BY HAND !!!!
-#
-# To regenerate this file, run ./update_deps.sh from the root of the
-# git repository.
+def docker_path(toolchain_info):
+    """Resolve the user-supplied docker path, if any.
 
-DIGESTS = {
-    # "gcr.io/distroless/base:debug" circa 2021-12-01 22:44 +0200
-    "debug": "sha256:4e644c5d3a7341cf7ca568fe33356734601ad90d6be01a07090cf48c4f329371",
-    # "gcr.io/distroless/base:latest" circa 2021-12-01 22:44 +0200
-    "latest": "sha256:0530d193888bcd7bd0376c8b34178ea03ddb0b2b18caf265135b6d3a393c8d05",
-}
+    Args:
+       toolchain_info: The DockerToolchainInfo
+
+    Returns:
+       Path to docker
+    """
+    if toolchain_info.tool_target:
+        return toolchain_info.tool_target.files_to_run.executable.path
+    else:
+        return toolchain_info.tool_path
