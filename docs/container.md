@@ -87,7 +87,7 @@ A rule that imports a docker image into our intermediate form.
 | <a id="container_import-layers"></a>layers |  The list of layer .tar.gz files in the order they appear in the config.json's layer section,             or in the order that they appear in the <code>Layers</code> field of the docker save tarballs'             <code>manifest.json</code> (these may or may not be gzipped).<br><br>            Note that the layers should each have a different basename.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | required |  |
 | <a id="container_import-manifest"></a>manifest |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 | <a id="container_import-repository"></a>repository |  -   | String | optional | "bazel" |
-| <a id="container_import-sha256"></a>sha256 |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | //tools/build_defs/hash:sha256 |
+| <a id="container_import-sha256"></a>sha256 |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | //container/go/cmd/sha256:sha256 |
 
 
 <a id="#container_layer"></a>
@@ -126,7 +126,7 @@ A rule that assembles data into a tarball which can be use as in layers attr in 
 | <a id="container_layer-mtime"></a>mtime |  -   | Integer | optional | -1 |
 | <a id="container_layer-operating_system"></a>operating_system |  -   | String | optional | "linux" |
 | <a id="container_layer-portable_mtime"></a>portable_mtime |  -   | Boolean | optional | False |
-| <a id="container_layer-sha256"></a>sha256 |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | //tools/build_defs/hash:sha256 |
+| <a id="container_layer-sha256"></a>sha256 |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | //container/go/cmd/sha256:sha256 |
 | <a id="container_layer-symlinks"></a>symlinks |  Symlinks to create in the Docker image.<br><br>        For example,<br><br>            symlinks = {                 "/path/to/link": "/path/to/target",                 ...             },   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
 | <a id="container_layer-tars"></a>tars |  Tar file to extract in the layer.<br><br>        A list of tar files whose content should be in the Docker image.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 
@@ -160,10 +160,10 @@ The created target can be referenced as `@label_name//image`.
 ## container_pull
 
 <pre>
-container_pull(<a href="#container_pull-name">name</a>, <a href="#container_pull-architecture">architecture</a>, <a href="#container_pull-cpu_variant">cpu_variant</a>, <a href="#container_pull-digest">digest</a>, <a href="#container_pull-docker_client_config">docker_client_config</a>, <a href="#container_pull-import_tags">import_tags</a>, <a href="#container_pull-os">os</a>,
-               <a href="#container_pull-os_features">os_features</a>, <a href="#container_pull-os_version">os_version</a>, <a href="#container_pull-platform_features">platform_features</a>, <a href="#container_pull-puller_darwin">puller_darwin</a>, <a href="#container_pull-puller_linux_amd64">puller_linux_amd64</a>,
-               <a href="#container_pull-puller_linux_arm64">puller_linux_arm64</a>, <a href="#container_pull-puller_linux_s390x">puller_linux_s390x</a>, <a href="#container_pull-registry">registry</a>, <a href="#container_pull-repo_mapping">repo_mapping</a>, <a href="#container_pull-repository">repository</a>, <a href="#container_pull-tag">tag</a>,
-               <a href="#container_pull-timeout">timeout</a>)
+container_pull(<a href="#container_pull-name">name</a>, <a href="#container_pull-architecture">architecture</a>, <a href="#container_pull-cpu_variant">cpu_variant</a>, <a href="#container_pull-cred_helpers">cred_helpers</a>, <a href="#container_pull-digest">digest</a>, <a href="#container_pull-docker_client_config">docker_client_config</a>,
+               <a href="#container_pull-import_tags">import_tags</a>, <a href="#container_pull-os">os</a>, <a href="#container_pull-os_features">os_features</a>, <a href="#container_pull-os_version">os_version</a>, <a href="#container_pull-platform_features">platform_features</a>, <a href="#container_pull-puller_darwin">puller_darwin</a>,
+               <a href="#container_pull-puller_linux_amd64">puller_linux_amd64</a>, <a href="#container_pull-puller_linux_arm64">puller_linux_arm64</a>, <a href="#container_pull-puller_linux_s390x">puller_linux_s390x</a>, <a href="#container_pull-registry">registry</a>, <a href="#container_pull-repo_mapping">repo_mapping</a>,
+               <a href="#container_pull-repository">repository</a>, <a href="#container_pull-tag">tag</a>, <a href="#container_pull-timeout">timeout</a>)
 </pre>
 
 A repository rule that pulls down a Docker base image in a manner suitable for use with the `base` attribute of `container_image`.
@@ -196,8 +196,9 @@ please use the bazel startup flag `--loading_phase_threads=1` in your bazel invo
 | <a id="container_pull-name"></a>name |  A unique name for this repository.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
 | <a id="container_pull-architecture"></a>architecture |  Which CPU architecture to pull if this image refers to a multi-platform manifest list, default 'amd64'.   | String | optional | "amd64" |
 | <a id="container_pull-cpu_variant"></a>cpu_variant |  Which CPU variant to pull if this image refers to a multi-platform manifest list.   | String | optional | "" |
+| <a id="container_pull-cred_helpers"></a>cred_helpers |  Labels to a list of credential helper binaries that are configured in <code>docker_client_config</code>.<br><br>        More about credential helpers: https://docs.docker.com/engine/reference/commandline/login/#credential-helpers   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="container_pull-digest"></a>digest |  The digest of the image to pull.   | String | optional | "" |
-| <a id="container_pull-docker_client_config"></a>docker_client_config |  Specifies a custom directory to look for the docker client configuration.<br><br>            Don't use this directly.             Instead, specify the docker configuration directory using a custom docker toolchain configuration.             Look for the <code>client_config</code> attribute in <code>docker_toolchain_configure</code>             [here](https://github.com/bazelbuild/rules_docker#setup) for details.             See [here](https://github.com/bazelbuild/rules_docker#container_pull-custom-client-configuration)             for an example on how to use container_pull after configuring the docker toolchain<br><br>            When left unspecified (ie not set explicitly or set by the docker toolchain),             docker will use the directory specified via the <code>DOCKER_CONFIG</code> environment variable.<br><br>            If <code>DOCKER_CONFIG</code> isn't set, docker falls back to <code>$HOME/.docker</code>.   | String | optional | "" |
+| <a id="container_pull-docker_client_config"></a>docker_client_config |  Specifies  a Bazel label of the config.json file.<br><br>            Don't use this directly.             Instead, specify the docker configuration directory using a custom docker toolchain configuration.             Look for the <code>client_config</code> attribute in <code>docker_toolchain_configure</code>             [here](https://github.com/bazelbuild/rules_docker#setup) for details.             See [here](https://github.com/bazelbuild/rules_docker#container_pull-custom-client-configuration)             for an example on how to use container_pull after configuring the docker toolchain<br><br>            When left unspecified (ie not set explicitly or set by the docker toolchain),             docker will use the directory specified via the <code>DOCKER_CONFIG</code> environment variable.<br><br>            If <code>DOCKER_CONFIG</code> isn't set, docker falls back to <code>$HOME/.docker</code>.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 | <a id="container_pull-import_tags"></a>import_tags |  Tags to be propagated to generated rules.   | List of strings | optional | [] |
 | <a id="container_pull-os"></a>os |  Which os to pull if this image refers to a multi-platform manifest list.   | String | optional | "linux" |
 | <a id="container_pull-os_features"></a>os_features |  Specifies os features when pulling a multi-platform manifest list.   | List of strings | optional | [] |

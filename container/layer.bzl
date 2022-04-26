@@ -15,7 +15,7 @@
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
-    "@bazel_tools//tools/build_defs/hash:hash.bzl",
+    "//skylib:hash.bzl",
     _hash_tools = "tools",
     _sha256 = "sha256",
 )
@@ -166,11 +166,6 @@ def build_layer(
         input_manifests = xz_input_manifests,
         tools = files + file_map.values() + tars + debs + [manifest_file] + xz_tools,
         outputs = [layer],
-        execution_requirements = {
-            # This action produces large output files, so it's not
-            # economical to send this to the remote-cache
-            "no-remote-cache": "1",
-        },
         use_default_shell_env = True,
         mnemonic = "ImageLayer",
     )

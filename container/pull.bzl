@@ -47,8 +47,8 @@ _container_pull_attrs = {
     "digest": attr.string(
         doc = "The digest of the image to pull.",
     ),
-    "docker_client_config": attr.string(
-        doc = """Specifies a custom directory to look for the docker client configuration.
+    "docker_client_config": attr.label(
+        doc = """Specifies  a Bazel label of the config.json file.
 
             Don't use this directly.
             Instead, specify the docker configuration directory using a custom docker toolchain configuration.
@@ -62,6 +62,13 @@ _container_pull_attrs = {
 
             If `DOCKER_CONFIG` isn't set, docker falls back to `$HOME/.docker`.
             """,
+        mandatory = False,
+    ),
+    "cred_helpers": attr.label_list(
+        doc = """Labels to a list of credential helper binaries that are configured in `docker_client_config`.
+
+        More about credential helpers: https://docs.docker.com/engine/reference/commandline/login/#credential-helpers
+        """,
         mandatory = False,
     ),
     "import_tags": attr.string_list(
@@ -170,8 +177,9 @@ def _impl(repository_ctx):
     ]
 
     # Use the custom docker client config directory if specified.
-    if repository_ctx.attr.docker_client_config != "":
-        args += ["-client-config-dir", "{}".format(repository_ctx.attr.docker_client_config)]
+    docker_client_config = repository_ctx.attr.docker_client_config
+    if docker_client_config:
+        args += ["-client-config-dir", repository_ctx.path(docker_client_config).dirname]
 
     cache_dir = repository_ctx.os.environ.get("DOCKER_REPO_CACHE")
     if cache_dir:
@@ -218,6 +226,14 @@ def _impl(repository_ctx):
     elif repository_ctx.attr.timeout > 0:
         args.extend(["-timeout", str(repository_ctx.attr.timeout)])
         kwargs["timeout"] = repository_ctx.attr.timeout
+
+    if repository_ctx.attr.cred_helpers:
+        kwargs["environment"] = {
+            "PATH": "{}:{}".format(
+                ":".join([str(repository_ctx.path(helper).dirname) for helper in repository_ctx.attr.cred_helpers]),
+                repository_ctx.os.environ.get("PATH"),
+            ),
+        }
 
     result = repository_ctx.execute(args, **kwargs)
     if result.return_code:
